@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clasifica los colores - Juego Horizontal</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #f3f6f4;
+    color: #004d40;
+    margin: 30px;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  #puzzle {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 30px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+  .pieza {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    cursor: grab;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+    user-select: none;
+  }
+  #camion {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    overflow-x: auto;
+  }
+  .slot {
+    width: 90px;
+    height: 90px;
+    border: 2px dashed #00796b;
+    border-radius: 15px;
+    line-height: 90px;
+    font-weight: bold;
+    color: #00796b;
+    flex-shrink: 0;
+    position: relative;
+    background-color: #b2dfdb;
+  }
+  .slot.hover {
+    background-color: #004d40;
+    color: white;
+    border-color: #004d40;
+  }
+  .slot .pieza-colocada {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    box-shadow: none;
+    cursor: default;
+  }
+  #mensaje {
+    margin-top: 18px;
+    font-weight: 600;
+    min-height: 1.6em;
+  }
+  #btn-resultados {
+    margin-top: 25px;
+    padding: 12px 32px;
+    font-size: 1.1em;
+    background-color: #00796b;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+  }
+  #btn-resultados:disabled {
+    background-color: #80cbc4;
+    cursor: default;
+  }
+  #resultados {
+    margin-top: 30px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #e0f2f1;
+    border-radius: 15px;
+    padding: 20px;
+    display: none;
+    color: #004d40;
+  }
+  #resultados .destacado {
+    font-weight: 700;
+    color: #d32f2f;
+  }
+  #btn-siguiente {
+    margin-top: 20px;
+    background-color: #00796b;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.1em;
+    padding: 12px 32px;
+    cursor: pointer;
+  }
+  #btn-siguiente:hover {
+    background-color: #004d40;
+  }
+</style>
+</head>
+<body>
+
+<h1>Clasifica los colores en el camión</h1>
+
+<div id="puzzle" aria-label="Colores para arrastrar">
+  <!-- piezas de color generadas por JS -->
+</div>
+
+<div id="camion" aria-label="Compartimientos del camión">
+  <!-- compartimientos generados por JS -->
+</div>
+
+<div id="mensaje" role="alert" aria-live="assertive"></div>
+
+<button id="btn-resultados" disabled>Mostrar resultados</button>
+
+<div id="resultados" role="region" aria-live="polite" aria-atomic="true">
+  <h2>Resultados del juego</h2>
+  <p id="texto-resultados"></p>
+  <button id="btn-siguiente">Siguiente nivel</button>
+</div>
+
+<script>
+(() => {
+  const colores = ['rojo', 'amarillo', 'azul', 'morado', 'rosado', 'celeste', 'verde', 'cafe', 'naranja'];
+  const puzzle = document.getElementById('puzzle');
+  const camion = document.getElementById('camion');
+  const mensaje = document.getElementById('mensaje');
+  const btnResultados = document.getElementById('btn-resultados');
+  const resultados = document.getElementById('resultados');
+  const textoResultados = document.getElementById('texto-resultados');
+  const btnSiguiente = document.getElementById('btn-siguiente');
+
+  // Estados
+  let aciertos = {};
+  let errores = {};
+  let colocados = new Set();
+
+  colores.forEach(c => {
+    aciertos[c] = 0;
+    errores[c] = 0;
+  });
+
+  // Crear piezas
+  colores.forEach(color => {
+    const div = document.createElement('div');
+    div.classList.add('pieza', color);
+    div.draggable = true;
+    div.dataset.color = color;
+    div.setAttribute('aria-grabbed', 'false');
+    puzzle.appendChild(div);
+  });
+
+  // Crear slots del camion
+  colores.forEach(color => {
+    const slot = document.createElement('div');
+    slot.classList.add('slot');
+    slot.textContent = color.toUpperCase();
+    slot.dataset.color = color;
+    camion.appendChild(slot);
+  });
+
+  let dragSrcEl = null;
+
+  function dragStart(e) {
+    dragSrcEl = this;
+    e.dataTransfer.setData('text/plain', this.dataset.color);
+    this.setAttribute('aria-grabbed', 'true');
+    setTimeout(() => this.style.visibility = 'hidden', 0);
+  }
+  function dragEnd(e) {
+    this.style.visibility = 'visible';
+    this.setAttribute('aria-grabbed', 'false');
+  }
+  function dragOver(e) {
+    e.preventDefault();
+    this.classList.add('hover');
+  }
+  function dragLeave(e) {
+    this.classList.remove('hover');
+  }
+  function drop(e) {
+    e.preventDefault();
+    this.classList.remove('hover');
+    const colorArrastrado = e.dataTransfer.getData('text/plain');
+    if (!colorArrastrado) return;
+
+    if (colocados.has(colorArrastrado)) {
+      mensaje.textContent = 'Este color ya fue colocado.';
+      mensaje.style.color = '#d32f2f';
+      return;
+    }
+
+    const colorEsperado = this.dataset.color;
+
+    if (colorArrastrado === colorEsperado) {
+      aciertos[colorEsperado]++;
+      mensaje.textContent = '¡Correcto!';
+      mensaje.style.color = '#2e7d32';
+
+      dragSrcEl.draggable = false;
+      dragSrcEl.style.cursor = 'default';
+      dragSrcEl.style.position = 'absolute';
+      dragSrcEl.style.top = '15px';
+      dragSrcEl.style.left = '15px';
+      dragSrcEl.classList.add('pieza-colocada');
+      this.appendChild(dragSrcEl);
+
+      colocados.add(colorArrastrado);
+    } else {
+      errores[colorEsperado]++;
+      mensaje.textContent = `Incorrecto. Debes colocar el color "${this.textContent}".`;
+      mensaje.style.color = '#d32f2f';
+    }
+
+    if (colocados.size === colores.length) {
+      mensaje.textContent = '¡Juego terminado! Presiona "Mostrar resultados".';
+      mensaje.style.color = '#004d40';
+      btnResultados.disabled = false;
+    }
+  }
+
+  // Eventos
+  document.querySelectorAll('.pieza').forEach(pieza => {
+    pieza.addEventListener('dragstart', dragStart);
+    pieza.addEventListener('dragend', dragEnd);
+  });
+  document.querySelectorAll('.slot').forEach(slot => {
+    slot.addEventListener('dragover', dragOver);
+    slot.addEventListener('dragleave', dragLeave);
+    slot.addEventListener('drop', drop);
+  });
+
+  btnResultados.addEventListener('click', () => {
+    resultados.style.display = 'block';
+    const totalIntentos = Object.values(aciertos).reduce((a,b) => a+b, 0) + Object.values(errores).reduce((a,b) => a+b, 0);
+    const totalAciertos = Object.values(aciertos).reduce((a,b) => a+b, 0);
+    const totalErrores = totalIntentos - totalAciertos;
+    const porcentajeAciertos = totalIntentos ? Math.round((totalAciertos / totalIntentos) * 100) : 0;
+    const porcentajeErrores = 100 - porcentajeAciertos;
+
+    let peorColor = null;
+    let maxErrores = 0;
+    for (const c of colores) {
+      if (errores[c] > maxErrores) {
+        maxErrores = errores[c];
+        peorColor = c;
+      }
+    }
+
+    textoResultados.innerHTML = `
+      Total de intentos: <strong>${totalIntentos}</strong><br>
+      Aciertos: <strong>${totalAciertos} (${porcentajeAciertos}%)</strong><br>
+      Errores: <strong>${totalErrores} (${porcentajeErrores}%)</strong><br>
+      ${maxErrores > 0
+        ? `Debes reforzar el color: <span class="destacado">${peorColor.toUpperCase()}</span> (con ${maxErrores} error(es)).`
+        : '¡Excelente! No hubo errores.'}
+    `;
+  });
+
+  btnSiguiente.addEventListener('click', () => {
+    alert('Aquí va el siguiente nivel');
+    // window.location.href = 'nivel3.html'; // Descomenta para navegar
+  });
+})();
+</script>
+
+<style>
+  /* Colores para las piezas */
+  .rojo { background-color: #d32f2f; }
+  .amarillo { background-color: #fbc02d; }
+  .azul { background-color: #1976d2; }
+  .morado { background-color: #7b1fa2; }
+  .rosado { background-color: #e91e63; }
+  .celeste { background-color: #4fc3f7; }
+  .verde { background-color: #388e3c; }
+  .cafe { background-color: #6d4c41; }
+  .naranja { background-color: #f57c00; }
+</style>
+
+</body>
+</html>
