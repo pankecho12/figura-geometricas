@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nivel 2 - Colores Difícil</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      margin: 0;
+      background-color: #3B7D6E;
+      color: white;
+      text-align: center;
+    }
+    .pantalla {
+      padding: 60px 20px;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 30px;
+    }
+    .figuras, .zonas {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 30px 0;
+      gap: 20px;
+    }
+    .figure, .drop-zone {
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 15px;
+      font-weight: bold;
+    }
+    .figure {
+      background-color: white;
+      border: 3px solid #fff;
+      cursor: grab;
+    }
+    .drop-zone {
+      border: 3px dashed white;
+      color: white;
+      font-size: 1.3rem;
+    }
+    .drop-zone.correct {
+      border: 3px solid #00FF7F;
+      background-color: #1e5f51;
+    }
+    .drop-zone.error {
+      border: 3px solid red;
+      animation: flash 0.4s ease-in-out;
+    }
+    @keyframes flash {
+      0% { background-color: red; }
+      100% { background-color: transparent; }
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 1.3rem;
+      margin: 15px 10px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #FF6347, #800000);
+      color: white;
+      cursor: pointer;
+    }
+    svg {
+      width: 80px;
+      height: 80px;
+    }
+  </style>
+</head>
+<body>
+  <div class="pantalla" id="nivel2">
+    <h1>Nivel 2: Arrastra la figura a su color</h1>
+
+    <div class="figuras" id="contenedorFiguras">
+      <div class="figure" draggable="true" id="círculo-rojo" data-color="rojo" ondragstart="drag(event)">
+        <svg><circle cx="40" cy="40" r="35" fill="red"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="cuadrado-verde" data-color="verde" ondragstart="drag(event)">
+        <svg><rect x="10" y="10" width="60" height="60" fill="green"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="triángulo-azul" data-color="azul" ondragstart="drag(event)">
+        <svg><polygon points="40,10 75,75 5,75" fill="blue"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="estrella-amarilla" data-color="amarillo" ondragstart="drag(event)">
+        <svg><polygon points="40,5 48,30 75,30 52,50 60,75 40,60 20,75 28,50 5,30 32,30" fill="yellow"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="rectángulo-naranja" data-color="naranja" ondragstart="drag(event)">
+        <svg><rect x="10" y="40" width="70" height="25" fill="orange"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="ovalado-morado" data-color="morado" ondragstart="drag(event)">
+        <svg><ellipse cx="40" cy="40" rx="35" ry="25" fill="purple"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="pentágono-rosado" data-color="rosado" ondragstart="drag(event)">
+        <svg><polygon points="40,10 70,35 60,70 20,70 10,35" fill="pink"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="rombo-celeste" data-color="celeste" ondragstart="drag(event)">
+        <svg><polygon points="40,5 75,40 40,75 5,40" fill="skyblue"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="hexágono-café" data-color="café" ondragstart="drag(event)">
+        <svg><polygon points="40,5 70,25 70,55 40,75 10,55 10,25" fill="#8B4513"/></svg>
+      </div>
+    </div>
+
+    <div class="zonas">
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="café">Café</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="morado">Morado</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="rosado">Rosado</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="celeste">Celeste</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="amarillo">Amarillo</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="verde">Verde</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="rojo">Rojo</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="azul">Azul</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-color="naranja">Naranja</div>
+    </div>
+  </div>
+
+  <div class="pantalla" id="resultados2" style="display:none;">
+    <h1>Resultados del Nivel 2</h1>
+    <p id="porcentajeNivel2" style="font-size: 1.6rem;"></p>
+    <p id="recomendacionNivel2" style="font-size: 1.4rem;"></p>
+    <button onclick="location.reload()">Reintentar</button>
+  </div>
+
+  <script>
+    let correctos2 = 0;
+    let erroresTotales = 0;
+    const errores2 = {
+      rojo: 0, verde: 0, azul: 0, amarillo: 0,
+      naranja: 0, morado: 0, rosado: 0, celeste: 0, café: 0
+    };
+
+    function allowDrop(ev) { ev.preventDefault(); }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("id", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const figuraID = ev.dataTransfer.getData("id");
+      const figura = document.getElementById(figuraID);
+      const colorFigura = figura.dataset.color;
+      const zona = ev.target;
+
+      if (zona.children.length > 0) return;
+
+      const colorZona = zona.dataset.color;
+
+      if (colorZona === colorFigura) {
+        zona.appendChild(figura);
+        zona.classList.add("correct");
+        figura.setAttribute("draggable", "false");
+        correctos2++;
+
+        if (correctos2 === 9) {
+          setTimeout(mostrarResultados2, 800);
+        }
+      } else {
+        errores2[colorFigura]++;
+        erroresTotales++;
+        zona.classList.add("error");
+        setTimeout(() => zona.classList.remove("error"), 300);
+
+        if (erroresTotales > 5) {
+          alert("Demasiados errores. Intenta de nuevo.");
+          location.reload();
+        }
+      }
+    }
+
+    function mostrarResultados2() {
+      const total = correctos2 + erroresTotales;
+      const correctas = ((correctos2 / total) * 100).toFixed(1);
+      const incorrectas = (100 - correctas).toFixed(1);
+
+      document.getElementById("porcentajeNivel2").textContent =
+        `Correctas: ${correctas}%, Incorrectas: ${incorrectas}%`;
+
+      const peorColor = Object.keys(errores2).reduce((a, b) => errores2[a] > errores2[b] ? a : b);
+
+      if (errores2[peorColor] === 0) {
+        document.getElementById("recomendacionNivel2").textContent =
+          "¡Excelente! No necesitas reforzar ningún color.";
+      } else {
+        document.getElementById("recomendacionNivel2").textContent =
+          `Debes reforzar más el color: ${peorColor}`;
+      }
+
+      document.getElementById("nivel2").style.display = "none";
+      document.getElementById("resultados2").style.display = "block";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Adivina la Figura - Nivel Avanzado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color:#004d2d;;
+      text-align: center;
+      padding: 20px;
+      color: white; /* Cambia el color de texto a blanco */
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .pista {
+      font-size: 1.5em; /* Agrandar la pista */
+      margin: 20px 0;
+    }
+
+    .temporizador {
+      font-size: 1.3em; /* Agrandar el temporizador */
+      color: #ffffff;
+    }
+
+    .opciones {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px; /* Aumentar el espacio entre figuras */
+      margin: 20px auto; /* Aumentar el margen superior e inferior */
+      max-width: 800px; /* Aumentar el ancho máximo */
+    }
+
+    .figura {
+      cursor: pointer;
+      border: 5px solid transparent;
+      transition: transform 0.3s, border 0.3s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 5px;
+    }
+
+    .figura:hover {
+      transform: scale(1.2); /* Aumentar el tamaño al pasar el ratón */
+    }
+
+    /* Figuras con tamaño aumentado */
+
+    .cuadrado {
+      width: 150px; /* Aumentar el tamaño */
+      height: 150px; /* Aumentar el tamaño */
+      background: blue;
+    }
+
+    .circulo {
+      width: 150px; /* Aumentar el tamaño */
+      height: 150px; /* Aumentar el tamaño */
+      background: red;
+      border-radius: 50%;
+    }
+
+    .rectangulo {
+      width: 190px; /* Aumentar el tamaño */
+      height: 120px; /* Aumentar el tamaño */
+      background: orange;
+    }
+
+    .ovalo {
+      width: 170px; /* Aumentar el tamaño */
+      height: 120px; /* Aumentar el tamaño */
+      background: pink;
+      border-radius: 90px / 60px;
+    }
+
+    .diamante {
+      width: 110px; /* Aumentar el tamaño */
+      height: 110px; /* Aumentar el tamaño */
+      background: purple;
+      transform: rotate(45deg);
+      margin: auto;
+    }
+
+    .hexagono {
+      width: 160px; /* Aumentar el tamaño */
+      height: 85px; /* Aumentar el tamaño */
+      background-color: brown;
+      position: relative;
+      margin: auto;
+      clip-path: polygon(
+        25% 0%, 75% 0%, 
+        100% 50%, 75% 100%, 
+        25% 100%, 0% 50%
+      );
+    }
+
+    .triangulo {
+      width: 0;
+      height: 0;
+      border-left: 75px solid transparent; /* Aumentar el tamaño */
+      border-right: 75px solid transparent; /* Aumentar el tamaño */
+      border-bottom: 150px solid green; /* Aumentar el tamaño */
+      margin: auto;
+    }
+
+    .pentagono {
+      position: relative;
+      width: 150px; /* Aumentar el tamaño */
+      height: 130px; /* Aumentar el tamaño */
+      background-color: #ff69b4;
+      clip-path: polygon(
+        50% 0%, 93% 35%, 75% 90%, 25% 90%, 7% 35%
+      );
+      margin: auto;
+    }
+
+    .correcto {
+      border-color: limegreen !important;
+    }
+
+    .incorrecto {
+      border-color: red !important;
+    }
+
+    #mensaje {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 1.3em; /* Agrandar el mensaje */
+      min-height: 1.5em;
+    }
+
+    #resultado {
+      margin-top: 30px;
+      font-size: 1.3em; /* Agrandar el resultado */
+      display: none;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 27px; /* Agrandar el botón */
+      font-size: 1.3em; /* Agrandar el botón */
+      cursor: pointer;
+      border-radius: 6px;
+      border: 2px solid #ffffff;
+      background-color: #e0e0e0;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #c8c8c8;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎯 Adivina la Figura - Nivel Avanzado</h1>
+<div class="pista" id="pista"></div>
+<div class="temporizador" id="temporizador">⏳ Tiempo: 15s</div>
+<div class="opciones" id="opciones"></div>
+<div id="mensaje"></div>
+<button id="siguiente" style="display:none;">Siguiente</button>
+
+<div id="resultado"></div>
+
+<script>
+const figuras = ["circulo", "cuadrado", "diamante", "hexagono", "rectangulo", "triangulo", "ovalo", "pentagono"];
+
+const preguntas = [
+  {
+    pista: "Soy redondo como una rueda y de color rojo.",
+    respuesta: "circulo"
+  },
+  {
+    pista: "Tengo cuatro lados iguales y soy azul.",
+    respuesta: "cuadrado"
+  },
+  {
+    pista: "Parezco un rombo y soy morado.",
+    respuesta: "diamante"
+  },
+  {
+    pista: "Tengo seis lados iguales y soy marrón.",
+    respuesta: "hexagono"
+  },
+  {
+    pista: "Soy más largo que alto y anaranjado.",
+    respuesta: "rectangulo"
+  },
+  {
+    pista: "Tengo tres lados verdes.",
+    respuesta: "triangulo"
+  },
+  {
+    pista: "Mi forma es como un huevo rosado.",
+    respuesta: "ovalo"
+  },
+  {
+    pista: "Tengo cinco lados rosados.",
+    respuesta: "pentagono"
+  }
+];
+
+let index = 0;
+let correctas = 0;
+let incorrectas = 0;
+let erroresPorFigura = {};
+figuras.forEach(f => erroresPorFigura[f] = 0);
+
+let tiempo = 15;
+let intervalo;
+
+const pistaElem = document.getElementById('pista');
+const opcionesElem = document.getElementById('opciones');
+const mensajeElem = document.getElementById('mensaje');
+const resultadoElem = document.getElementById('resultado');
+const temporizadorElem = document.getElementById('temporizador');
+const siguienteBtn = document.getElementById('siguiente');
+
+function iniciarTemporizador() {
+  tiempo = 20;
+  temporizadorElem.textContent = `⏳ Tiempo: ${tiempo}s`;
+  intervalo = setInterval(() => {
+    tiempo--;
+    temporizadorElem.textContent = `⏳ Tiempo: ${tiempo}s`;
+    if (tiempo === 0) {
+      clearInterval(intervalo);
+      mensajeElem.textContent = "⏰ Tiempo agotado.";
+      mensajeElem.style.color = "red";
+      mostrarCorrecta();
+      erroresPorFigura[preguntas[index].respuesta]++;
+      incorrectas++;
+      siguienteBtn.style.display = "inline-block";
+      bloquearOpciones();
+    }
+  }, 1000);
+}
+
+function mostrarPregunta() {
+  mensajeElem.textContent = "";
+  siguienteBtn.style.display = "none";
+  opcionesElem.innerHTML = "";
+  pistaElem.style.display = "block";
+  opcionesElem.style.display = "flex";
+  temporizadorElem.style.display = "block";
+  mensajeElem.style.display = "block";
+
+  pistaElem.textContent = preguntas[index].pista;
+
+  const opciones = [preguntas[index].respuesta];
+  while (opciones.length < 4) {
+    const aleatoria = figuras[Math.floor(Math.random() * figuras.length)];
+    if (!opciones.includes(aleatoria)) {
+      opciones.push(aleatoria);
+    }
+  }
+
+  opciones.sort(() => Math.random() - 0.5);
+
+  opciones.forEach(op => {
+    const div = document.createElement('div');
+    div.className = `figura ${op}`;
+    div.addEventListener('click', () => verificarRespuesta(div, op));
+    opcionesElem.appendChild(div);
+  });
+
+  iniciarTemporizador();
+}
+
+function verificarRespuesta(elem, tipo) {
+  clearInterval(intervalo);
+  bloquearOpciones();
+
+  if (tipo === preguntas[index].respuesta) {
+    elem.classList.add("correcto");
+    mensajeElem.textContent = "¡Correcto!";
+    mensajeElem.style.color = "green";
+    correctas++;
+  } else {
+    elem.classList.add("incorrecto");
+    mensajeElem.textContent = "❌ Incorrecto.";
+    mensajeElem.style.color = "red";
+    erroresPorFigura[preguntas[index].respuesta]++;
+    mostrarCorrecta();
+    incorrectas++;
+  }
+
+  siguienteBtn.style.display = "inline-block";
+}
+
+function mostrarCorrecta() {
+  document.querySelectorAll('.figura').forEach(div => {
+    if (div.classList.contains(preguntas[index].respuesta)) {
+      div.classList.add("correcto");
+    }
+  });
+}
+
+function bloquearOpciones() {
+  document.querySelectorAll('.figura').forEach(f => {
+    f.style.pointerEvents = "none";
+  });
+}
+
+function mostrarResultado() {
+  pistaElem.style.display = 'none';
+  opcionesElem.style.display = 'none';
+  temporizadorElem.style.display = 'none';
+  mensajeElem.style.display = 'none';
+  siguienteBtn.style.display = 'none';
+
+  const total = correctas + incorrectas;
+  const figuraMasErrores = Object.entries(erroresPorFigura).sort((a, b) => b[1] - a[1])[0];
+
+  resultadoElem.innerHTML = `
+    <h2>📊 Resultados</h2>
+    <p>Correctas: ${correctas} (${((correctas/total)*100).toFixed(1)}%)</p>
+    <p>Incorrectas: ${incorrectas} (${((incorrectas/total)*100).toFixed(1)}%)</p>
+    <p>Figura con más errores: <strong>${figuraMasErrores[0]}</strong> (${figuraMasErrores[1]} errores)</p>
+    <button onclick="location.reload()">Volver a jugar</button>
+  `;
+  resultadoElem.style.display = "block";
+}
+
+siguienteBtn.addEventListener('click', () => {
+  index++;
+  if (index < preguntas.length) {
+    mostrarPregunta();
+  } else {
+    mostrarResultado();
+  }
+});
+
+mostrarPregunta();
+</script>
+</body>
+</html>

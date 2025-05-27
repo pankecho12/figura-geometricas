@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Juego de Colores - Nivel 1</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      background-color: #2c3e50;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 40px;
+    }
+    #juego, #resultados {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .circulo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin: 30px auto 10px auto;
+      background-color: gray;
+      box-shadow: 0 0 20px #000;
+    }
+    #zonaDrop {
+      margin: 20px auto 60px auto;
+      border: 4px dashed white;
+      height: 70px;
+      width: 320px;
+      line-height: 70px;
+      font-size: 1.9rem;
+      font-weight: bold;
+      color: white;
+      user-select: none;
+      border-radius: 15px;
+      transition: background-color 0.3s, border-color 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 50px;
+    }
+    #zonaDrop.incorrecto {
+      border-color: #ff4444;
+      background-color: #660000;
+      animation: shake 0.3s;
+    }
+    @keyframes shake {
+      0%, 100% {transform: translateX(0);}
+      20%, 60% {transform: translateX(-8px);}
+      40%, 80% {transform: translateX(8px);}
+    }
+    #nombres {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .nombre {
+      background-color: #34495e;
+      padding: 8px 20px;
+      border-radius: 15px;
+      cursor: grab;
+      user-select: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      box-shadow: 0 0 5px #000;
+      transition: background-color 0.3s;
+    }
+    .nombre:active {
+      cursor: grabbing;
+    }
+    button {
+      margin-top: 30px;
+      padding: 16px 36px;
+      font-size: 1.6rem;
+      border: none;
+      border-radius: 15px;
+      background-color: #27ae60;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px #27ae60;
+      transition: background-color 0.3s;
+    }
+    button:disabled {
+      background-color: #7f8c8d;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="juego">
+  <h1 style="font-size: 2.8rem;">Nivel 1: Arrastra el nombre al color correcto</h1>
+
+  <div class="circulo" id="circulo"></div>
+
+  <div id="zonaDrop" ondrop="drop(event)" ondragover="allowDrop(event)">
+    Arrastra aquí el nombre del color
+  </div>
+
+  <div id="nombres"></div>
+
+  <p id="contador" style="font-size: 1.8rem; margin-top: 25px;"></p>
+</div>
+
+<div id="resultados" style="display:none;">
+  <h1 style="font-size: 2.8rem;">Resultados</h1>
+  <p id="porcentaje" style="font-size: 1.8rem;"></p>
+  <p id="recomendacion" style="font-size: 1.8rem; margin-top: 15px;"></p>
+  <button onclick="reiniciarJuego()">Repetir Nivel</button>
+  <button onclick="alert('Siguiente nivel en desarrollo')">Siguiente Nivel</button>
+</div>
+
+<script>
+  const colores = ["Rojo", "Amarillo", "Azul", "Morado", "Rosado", "Celeste", "Verde", "Café", "Naranja"];
+  const colorMap = {
+    Rojo: "red",
+    Amarillo: "yellow",
+    Azul: "blue",
+    Morado: "purple",
+    Rosado: "pink",
+    Celeste: "skyblue",
+    Verde: "green",
+    Café: "#8B4513",
+    Naranja: "orange"
+  };
+
+  let indice = 0;
+  let correctos = 0;
+  const errores = {};
+  colores.forEach(c => errores[c] = 0);
+
+  const circulo = document.getElementById("circulo");
+  const zonaDrop = document.getElementById("zonaDrop");
+  const nombresDiv = document.getElementById("nombres");
+  const contadorP = document.getElementById("contador");
+  const juegoDiv = document.getElementById("juego");
+  const resultadosDiv = document.getElementById("resultados");
+  const porcentajeP = document.getElementById("porcentaje");
+  const recomendacionP = document.getElementById("recomendacion");
+
+  function shuffle(array) {
+    for (let i = array.length -1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function crearNombres() {
+    nombresDiv.innerHTML = "";
+    const nombresDesordenados = [...colores];
+    shuffle(nombresDesordenados);
+    nombresDesordenados.forEach(color => {
+      const div = document.createElement("div");
+      div.textContent = color;
+      div.className = "nombre";
+      div.draggable = true;
+      div.id = `nombre-${color}`;
+      div.addEventListener("dragstart", drag);
+      nombresDiv.appendChild(div);
+    });
+  }
+
+  function mostrarColor() {
+    const color = colores[indice];
+    circulo.style.backgroundColor = colorMap[color];
+    zonaDrop.textContent = "Arrastra aquí el nombre del color";
+    zonaDrop.classList.remove("incorrecto");
+    actualizarContador();
+  }
+
+  function allowDrop(ev) {
+    ev.preventDefault();
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.textContent);
+  }
+
+  function drop(ev) {
+    ev.preventDefault();
+    const nombreArrastrado = ev.dataTransfer.getData("text");
+    const colorActual = colores[indice];
+
+    if (nombreArrastrado === colorActual) {
+      correctos++;
+      zonaDrop.textContent = `¡Correcto! Es ${colorActual}`;
+      zonaDrop.classList.remove("incorrecto");
+      actualizarContador();
+      siguientePregunta();
+    } else {
+      errores[colorActual]++;
+      zonaDrop.textContent = `Incorrecto, intenta de nuevo`;
+      zonaDrop.classList.add("incorrecto");
+      actualizarContador();
+    }
+  }
+
+  function actualizarContador() {
+    const totalErrores = Object.values(errores).reduce((a, b) => a + b, 0);
+    const totalIntentos = correctos + totalErrores;
+    contadorP.textContent = `Pregunta ${indice + 1} de ${colores.length} | Intentos: ${totalIntentos} | Errores: ${totalErrores}`;
+  }
+
+  function siguientePregunta() {
+    indice++;
+    if (indice >= colores.length) {
+      mostrarResultados();
+    } else {
+      setTimeout(() => {
+        mostrarColor();
+        zonaDrop.classList.remove("incorrecto");
+      }, 1000);
+    }
+  }
+
+  function mostrarResultados() {
+    juegoDiv.style.display = "none";
+    resultadosDiv.style.display = "block";
+
+    const totalIntentos = correctos + Object.values(errores).reduce((a, b) => a + b, 0);
+    const porcentajeCorrectas = ((correctos / totalIntentos) * 100).toFixed(1);
+    const porcentajeIncorrectas = (100 - porcentajeCorrectas).toFixed(1);
+
+    porcentajeP.textContent = `Correctas: ${porcentajeCorrectas}% - Incorrectas: ${porcentajeIncorrectas}%`;
+
+    let peorColor = null;
+    let maxErrores = 0;
+    for (const c of colores) {
+      if (errores[c] > maxErrores) {
+        maxErrores = errores[c];
+        peorColor = c;
+      }
+    }
+    if (maxErrores === 0) {
+      recomendacionP.textContent = "¡Excelente! No necesitas reforzar ningún color.";
+    } else {
+      recomendacionP.textContent = `Debes reforzar más el color: ${peorColor}.`;
+    }
+  }
+
+  function reiniciarJuego() {
+    indice = 0;
+    correctos = 0;
+    colores.forEach(c => errores[c] = 0);
+    resultadosDiv.style.display = "none";
+    juegoDiv.style.display = "block";
+    crearNombres();
+    mostrarColor();
+  }
+
+  crearNombres();
+  mostrarColor();
+</script>
+
+</body>
+</html>

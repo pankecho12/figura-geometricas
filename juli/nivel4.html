@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Juego de Figuras Geométricas - Nivel 1</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      margin: 0;
+      background-color: #3B7D6E;
+      color: white;
+      text-align: center;
+    }
+    .pantalla {
+      display: none;
+      padding: 60px 20px;
+      min-height: 100vh;
+    }
+    .pantalla.active {
+      display: block;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 2rem;
+      margin: 20px 0;
+    }
+    #instruccionesTexto {
+      background-color: #004d40;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 40px;
+      font-size: 1.6rem;
+      line-height: 1.4;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .button {
+      background: linear-gradient(135deg, #FF6347, #800000);
+      border: none;
+      padding: 15px 30px;
+      color: white;
+      font-size: 20px;
+      border-radius: 40px;
+      cursor: pointer;
+      margin: 20px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease-in-out;
+    }
+    .button:hover {
+      transform: scale(1.05);
+    }
+    .drop-zone, .figure {
+      width: 130px;
+      height: 130px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 12px;
+      margin: 10px;
+      user-select: none;
+    }
+    .drop-zone {
+      background-color: transparent;
+      border: 3px dashed white;
+      color: white;
+    }
+    .drop-zone.correct {
+      background-color: #1e5f51;
+      border: 3px solid #00FF7F;
+    }
+    .figure {
+      background-color: white;
+      border: 3px solid #FF6347;
+      color: black;
+      cursor: grab;
+    }
+    svg {
+      width: 60px;
+      height: 60px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Pantalla de instrucciones inicial -->
+  <div class="pantalla active" id="pantallaInstrucciones">
+    <h1>Instrucciones</h1>
+    <div id="instruccionesTexto">
+      <p><strong>¿Cómo jugar?</strong></p>
+      <p>Arrastra cada figura geométrica hacia el nombre correcto.</p>
+    </div>
+    <button class="button" onclick="mostrarPantalla('nivel1')">Comenzar Nivel 1</button>
+  </div>
+
+  <!-- Pantalla Nivel 1 -->
+  <div class="pantalla" id="nivel1">
+    <h1>Nivel 1</h1>
+    <h2>Arrastra la figura al nombre correcto</h2>
+    <div class="figuras">
+      <div class="figure" draggable="true" id="círculo" ondragstart="drag(event)">
+        <svg><circle cx="30" cy="30" r="25" fill="#FF6347"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="cuadrado" ondragstart="drag(event)">
+        <svg><rect width="50" height="50" fill="#4682B4" x="5" y="5"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="diamante" ondragstart="drag(event)">
+        <svg><polygon points="30,5 55,30 30,55 5,30" fill="#8A2BE2"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="hexágono" ondragstart="drag(event)">
+        <svg viewBox="0 0 60 52">
+          <polygon points="30,5 55,17 55,40 30,52 5,40 5,17" fill="#32CD32"/>
+        </svg>
+      </div>
+      <div class="figure" draggable="true" id="rectángulo" ondragstart="drag(event)">
+        <svg><rect width="70" height="40" fill="#FFA500" x="0" y="10"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="triángulo" ondragstart="drag(event)">
+        <svg><polygon points="30,5 55,55 5,55" fill="#FFD700"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="óvalo" ondragstart="drag(event)">
+        <svg><ellipse cx="30" cy="30" rx="30" ry="18" fill="#FF69B4"/></svg>
+      </div>
+      <div class="figure" draggable="true" id="pentágono" ondragstart="drag(event)">
+        <svg viewBox="0 0 60 60">
+          <polygon points="30,5 55,22 45,55 15,55 5,22" fill="#00CED1"/>
+        </svg>
+      </div>
+    </div>
+    <div class="zonas">
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="círculo">Círculo</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="cuadrado">Cuadrado</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="diamante">Diamante</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="hexágono">Hexágono</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="rectángulo">Rectángulo</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="triángulo">Triángulo</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="óvalo">Óvalo</div>
+      <div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-figura="pentágono">Pentágono</div>
+    </div>
+  </div>
+
+  <!-- Resultados Nivel 1 -->
+  <div class="pantalla" id="resultadosNivel1">
+    <h1>Resultados del Nivel 1</h1>
+    <p id="porcentajeNivel1"></p>
+    <p id="recomendacionNivel1"></p>
+    <button class="button" onclick="reiniciarNivel1()">Repetir Nivel</button>
+    <button class="button" onclick="alert('Menú principal aún no implementado')">Siguiente Nivel</button>
+  </div>
+
+  <script>
+    let correctos = 0;
+    const errores = {
+      "círculo": 0,
+      "cuadrado": 0,
+      "diamante": 0,
+      "hexágono": 0,
+      "rectángulo": 0,
+      "triángulo": 0,
+      "óvalo": 0,
+      "pentágono": 0
+    };
+
+    function mostrarPantalla(id) {
+      document.querySelectorAll('.pantalla').forEach(p => p.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const figuraID = ev.dataTransfer.getData("text");
+      const figura = document.getElementById(figuraID);
+      const zona = ev.target;
+
+      if (zona.children.length > 0) return; // Ya tiene figura
+
+      const zonaCorrecta = zona.dataset.figura;
+      if (zonaCorrecta === figuraID) {
+        zona.appendChild(figura);
+        figura.setAttribute("draggable", "false");
+        zona.classList.add("correct");
+        correctos++;
+        if (correctos === Object.keys(errores).length) {
+          setTimeout(mostrarResultadosNivel1, 1000);
+        }
+      } else {
+        errores[figuraID]++;
+      }
+    }
+
+    function mostrarResultadosNivel1() {
+      const totalIntentos = correctos + Object.values(errores).reduce((a,b) => a + b, 0);
+      const correctas = totalIntentos ? (correctos / totalIntentos * 100).toFixed(1) : 0;
+      const incorrectas = (100 - correctas).toFixed(1);
+
+      document.getElementById("porcentajeNivel1").textContent =
+        `Respuestas correctas: ${correctas}%, incorrectas: ${incorrectas}%.`;
+
+      let peorFigura = Object.keys(errores).reduce((a,b) => errores[a] > errores[b] ? a : b);
+      if (errores[peorFigura] === 0) {
+        document.getElementById("recomendacionNivel1").textContent = "¡Muy bien! No necesitas reforzar ninguna figura.";
+      } else {
+        document.getElementById("recomendacionNivel1").textContent = `Debes reforzar la figura: ${peorFigura}`;
+      }
+
+      mostrarPantalla("resultadosNivel1");
+    }
+
+    function reiniciarNivel1() {
+      correctos = 0;
+      for (const key in errores) errores[key] = 0;
+
+      const figurasContenedor = document.querySelector("#nivel1 .figuras");
+      const zonas = document.querySelectorAll("#nivel1 .drop-zone");
+      zonas.forEach(zona => {
+        zona.classList.remove("correct");
+        if (zona.children.length > 0) {
+          const figura = zona.children[0];
+          figurasContenedor.appendChild(figura);
+          figura.setAttribute("draggable", "true");
+        }
+      });
+      mostrarPantalla("nivel1");
+    }
+  </script>
+</body>
+</html>

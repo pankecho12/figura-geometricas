@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Juego de Figuras - Mejorado</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f8ff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #2c3e50;
+    }
+
+    .contenedor {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .figura, .nombre {
+      width: 120px;
+      height: 120px;
+      margin: 10px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      background-color: white;
+      cursor: grab;
+      user-select: none;
+      position: relative;
+    }
+
+    .figura.bloqueado {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .figura.circulo { border-radius: 50%; background-color: red; }
+    .figura.cuadrado { background-color: blue; }
+    .figura.triangulo {
+      width: 0; height: 0;
+      border-left: 60px solid transparent;
+      border-right: 60px solid transparent;
+      border-bottom: 100px solid green;
+      background: none; border-radius: 0;
+    }
+    .figura.rectangulo { width: 140px; height: 80px; background-color: orange; }
+    .figura.diamante {
+      background: purple;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+    .figura.hexagono {
+      background: teal;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    }
+    .figura.ovalo {
+      background: pink;
+      width: 120px; height: 70px;
+      border-radius: 50% / 40%;
+    }
+    .figura.pentagono {
+      background: brown;
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+    }
+
+    .zona-nombres {
+      margin-top: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nombre {
+      background: #ffffff;
+      border: 2px solid #333;
+    }
+
+    #resultados {
+      margin-top: 30px;
+      display: none;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .correcto {
+      border: 3px solid green !important;
+    }
+
+    .incorrecto {
+      border: 3px solid red !important;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Une la figura con su nombre</h1>
+  <p>Arrastra el nombre a la figura correspondiente. Tienes 2 intentos por figura.</p>
+
+  <div class="contenedor" id="zona-figuras">
+    <div class="figura circulo" data-nombre="Círculo"></div>
+    <div class="figura cuadrado" data-nombre="Cuadrado"></div>
+    <div class="figura triangulo" data-nombre="Triángulo"></div>
+    <div class="figura rectangulo" data-nombre="Rectángulo"></div>
+    <div class="figura diamante" data-nombre="Diamante"></div>
+    <div class="figura hexagono" data-nombre="Hexágono"></div>
+    <div class="figura ovalo" data-nombre="Óvalo"></div>
+    <div class="figura pentagono" data-nombre="Pentágono"></div>
+  </div>
+
+  <div class="zona-nombres" id="zona-nombres">
+    <!-- Se generan aquí -->
+  </div>
+
+  <div id="resultados"></div>
+
+  <button onclick="location.reload()">🔁 Repetir nivel</button>
+
+  <script>
+    const nombres = ["Círculo", "Cuadrado", "Triángulo", "Rectángulo", "Diamante", "Hexágono", "Óvalo", "Pentágono"];
+    const errores = {};
+    const intentos = {};
+    let aciertos = 0;
+
+    const zonaNombres = document.getElementById("zona-nombres");
+    const zonaFiguras = document.querySelectorAll(".figura");
+
+    // Mezclar nombres
+    const nombresMezclados = [...nombres].sort(() => 0.5 - Math.random());
+
+    // Crear tarjetas de nombres
+    nombresMezclados.forEach(nombre => {
+      const div = document.createElement("div");
+      div.className = "nombre";
+      div.draggable = true;
+      div.textContent = nombre;
+      zonaNombres.appendChild(div);
+
+      div.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text", nombre);
+        e.dataTransfer.setData("id", e.target.id);
+        div.classList.remove("incorrecto");
+      });
+    });
+
+    zonaFiguras.forEach(figura => {
+      const esperado = figura.dataset.nombre;
+      errores[esperado] = 0;
+      intentos[esperado] = 0;
+
+      figura.addEventListener("dragover", e => e.preventDefault());
+
+      figura.addEventListener("drop", e => {
+        e.preventDefault();
+        if (figura.classList.contains("bloqueado")) return;
+
+        const nombreSoltado = e.dataTransfer.getData("text");
+        const elementos = document.querySelectorAll(".nombre");
+
+        const elemento = [...elementos].find(el => el.textContent === nombreSoltado);
+
+        if (nombreSoltado === esperado) {
+          figura.classList.add("correcto", "bloqueado");
+          figura.appendChild(elemento);
+          elemento.draggable = false;
+          elemento.style.cursor = "default";
+          elemento.style.background = "#d4edda";
+          aciertos++;
+        } else {
+          errores[esperado]++;
+          intentos[esperado]++;
+          elemento.classList.add("incorrecto");
+
+          if (intentos[esperado] >= 2) {
+            figura.classList.add("bloqueado");
+            figura.innerHTML += `<div style="position:absolute;bottom:5px;color:red;">✖ Bloqueado</div>`;
+          }
+        }
+
+        verificarFin();
+      });
+    });
+
+    function verificarFin() {
+      const totalIntentos = aciertos + Object.values(errores).reduce((a, b) => a + b, 0);
+      const totalFiguras = nombres.length;
+      const figurasBloqueadas = document.querySelectorAll(".figura.bloqueado").length;
+
+      if (figurasBloqueadas === totalFiguras) {
+        const porcentajeCorrectas = ((aciertos / totalIntentos) * 100).toFixed(1);
+        const porcentajeIncorrectas = (100 - porcentajeCorrectas).toFixed(1);
+
+        let figuraMasErrores = "Ninguna";
+        let maxErrores = 0;
+
+        for (let nombre in errores) {
+          if (errores[nombre] > maxErrores) {
+            maxErrores = errores[nombre];
+            figuraMasErrores = nombre;
+          }
+        }
+
+        const resultados = document.getElementById("resultados");
+        resultados.style.display = "block";
+        resultados.innerHTML = `
+          <h2>📊 Resultados</h2>
+          <p>✅ Aciertos: ${porcentajeCorrectas}%</p>
+          <p>❌ Errores: ${porcentajeIncorrectas}%</p>
+          <p>📌 Figura que necesita refuerzo: <strong>${figuraMasErrores}</strong></p>
+        `;
+      }
+    }
+  </script>
+
+</body>
+</html>
